@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+.idea/
+*.sln.DotSettings.user
+
+.DS_Store
+Thumbs.db

@@ -1,6 +1,8 @@
-﻿namespace _3dEngine.Interfaces;
+﻿using _3dEngine.Interfaces;
 
-internal interface IInputProvider
+namespace _3dEngine.Inputs.Interfaces;
+
+internal interface IInputProvider : IDisposable
 {
     void Update();
     bool IsGetKey(ConsoleKey key);

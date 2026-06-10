@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using _3dEngine.Inputs.Interfaces;
 using _3dEngine.Interfaces;
 
 namespace _3dEngine.Inputs.Implementations;
@@ -17,20 +18,46 @@ internal class LibX11InputProvider : IInputProvider
     [DllImport("libX11.so.6")]
     private static extern byte XKeysymToKeycode(IntPtr display, IntPtr keysym);
     
+    [DllImport("libX11.so.6")]
+    private static extern int XGetInputFocus(IntPtr display, out IntPtr focus_return, out int revert_to_return);
+
+    [DllImport("libX11.so.6")]
+    private static extern int XFetchName(IntPtr display, IntPtr window, out IntPtr window_name_return);
+
+    [DllImport("libX11.so.6")]
+    private static extern int XFree(IntPtr data);
+
+    [DllImport("libX11.so.6")]
+    private static extern int XQueryTree(IntPtr display, IntPtr window, out IntPtr root_return, out IntPtr parent_return, out IntPtr children_return, out int nchildren_return);
+    
     
     private IntPtr _display;
     private byte[] _keyState = new byte[32];
-    
-    private readonly int[] _keyCodeCache = new int[256]; 
+    private readonly int[] _keyCodeCache = new int[256];
+    private int lShiftCode;
+    private int rShiftCode;
+    private int lCtrlCode;
+    private int rCtrlCode;
+    private int lAltCode;
+    private int rAltCode;
     
     public bool IsAvailable { get; private set; }
     public string? InitializationError { get; private set; }
+    
+    
+    private readonly IntPtr _myWindowId = IntPtr.Zero;
 
     public LibX11InputProvider()
     {
         for (int i = 0; i < _keyCodeCache.Length; i++)
         {
             _keyCodeCache[i] = -1;
+        }
+        
+        string? windowIdEnv = Environment.GetEnvironmentVariable("WINDOWID");
+        if (!string.IsNullOrEmpty(windowIdEnv) && long.TryParse(windowIdEnv, out long winId))
+        {
+            _myWindowId = (IntPtr)winId;
         }
         
         try
@@ -56,9 +83,13 @@ internal class LibX11InputProvider : IInputProvider
 
     public void Update()
     {
-        if (IsAvailable && _display != IntPtr.Zero)
+        if (IsAvailable && _display != IntPtr.Zero && IsAppFocused())
         {
             XQueryKeymap(_display, _keyState);
+        }
+        else
+        {
+            Array.Clear(_keyState, 0, _keyState.Length);
         }
     }
 
@@ -78,14 +109,64 @@ internal class LibX11InputProvider : IInputProvider
         return IsGetKey((ConsoleKey)virtualKey);
     }
 
-    public bool IsShift => IsPressed(50) || IsPressed(62);
-    public bool IsCtrl  => IsPressed(37) || IsPressed(105);
-    public bool IsAlt   => IsPressed(64) || IsPressed(108);
+    public bool IsShift => IsPressed(rShiftCode) || IsPressed(lShiftCode);
+    public bool IsCtrl  => IsPressed(rCtrlCode) || IsPressed(lCtrlCode);
+    public bool IsAlt   => IsPressed(rAltCode) || IsPressed(lAltCode);
 
     private bool IsPressed(int keyCode)
     {
         if (keyCode <= 0 || keyCode >= 256) return false;
         return (_keyState[keyCode / 8] & (1 << (keyCode % 8))) != 0;
+    }
+    
+    private bool IsAppFocused()
+    {
+        if(_display == IntPtr.Zero) return false;
+        
+        XGetInputFocus(_display, out IntPtr focusedWindow, out _);
+        if (focusedWindow == IntPtr.Zero) return false;
+        
+        if (_myWindowId != IntPtr.Zero)
+        {
+            IntPtr current = focusedWindow;
+            while (current != IntPtr.Zero)
+            {
+                if (current == _myWindowId) return true;
+
+                if (XQueryTree(_display, current, out _, out IntPtr parent, out IntPtr children, out _) != 0)
+                {
+                    if (children != IntPtr.Zero) XFree(children);
+                    current = parent;
+                }
+                else break;
+            }
+            return false;
+        }
+        
+        IntPtr curr = focusedWindow;
+        while (curr != IntPtr.Zero)
+        {
+            string? title = null;
+            if (XFetchName(_display, curr, out IntPtr namePtr) != 0 && namePtr != IntPtr.Zero)
+            {
+                title = Marshal.PtrToStringAnsi(namePtr);
+                XFree(namePtr);
+            }
+            
+            if (!string.IsNullOrEmpty(title))
+            {
+                return title.Contains(Console.Title, StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (XQueryTree(_display, curr, out _, out IntPtr parent, out IntPtr children, out _) != 0)
+            {
+                if (children != IntPtr.Zero) XFree(children);
+                curr = parent;
+            }
+            else break;
+        }
+        
+        return false;
     }
     
     
@@ -100,13 +181,33 @@ internal class LibX11InputProvider : IInputProvider
                 _keyCodeCache[consoleKeyIndex] = physicalKeycode != 0 ? physicalKeycode : -1;
             }
         }
+
+        rShiftCode = XKeysymToKeycode(_display, (IntPtr)0xffe1);
+        lShiftCode = XKeysymToKeycode(_display, (IntPtr)0xffe2);
+        rCtrlCode = XKeysymToKeycode(_display, (IntPtr)0xffe3);
+        lCtrlCode = XKeysymToKeycode(_display, (IntPtr)0xffe4);
+        rAltCode = XKeysymToKeycode(_display, (IntPtr)0xffe9);
+        lAltCode = XKeysymToKeycode(_display, (IntPtr)0xffea);
     }
 
     ~LibX11InputProvider()
     {
-        XCloseDisplay(_display);
+        if (_display != IntPtr.Zero) 
+        {
+            //todo logs
+        }
     }
-    
+
+    public void Dispose()
+    {
+        if (_display != IntPtr.Zero)
+        {
+            XCloseDisplay(_display);
+            _display = IntPtr.Zero;
+        }
+        GC.SuppressFinalize(this);
+    }
+
     #region КАРТА СОПОСТАВЛЕНИЯ CONSOLEKEY -> X11 KEYSYM
 
         // Мы сопоставляем ConsoleKey со значениями из keysymdef.h

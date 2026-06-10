@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using _3dEngine.Inputs.Interfaces;
 using _3dEngine.Interfaces;
 
 namespace _3dEngine.Inputs.Implementations;
@@ -49,4 +50,6 @@ internal class DotNetInputProvider : IInputProvider
     public bool IsShift => (_modifiers & ConsoleModifiers.Shift) != 0;
     public bool IsCtrl  => (_modifiers & ConsoleModifiers.Control) != 0;
     public bool IsAlt   => (_modifiers & ConsoleModifiers.Alt) != 0;
+    public void Dispose()
+    {}
 }

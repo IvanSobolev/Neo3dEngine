@@ -1,6 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 using _3dEngine.Inputs.Implementations;
+using _3dEngine.Inputs.Interfaces;
 using _3dEngine.Interfaces;
+using System;
 
 namespace _3dEngine.Inputs;
 public static class Input
@@ -24,19 +26,6 @@ public static class Input
                 WarningMessage = winProvider.InitializationError!;
             }
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            var macProvider = new MacOsInputProvider();
-            if (macProvider.IsAvailable)
-            {
-                Provider = macProvider;
-                return;
-            }
-            else
-            {
-                WarningMessage = macProvider.InitializationError!;
-            }
-        }
         else
         {
             var x11Provider = new LibX11InputProvider();
@@ -50,6 +39,10 @@ public static class Input
                 WarningMessage = x11Provider.InitializationError!;
             }
         }
+        
+        AppDomain.CurrentDomain.ProcessExit += (s, e) => Dispose();
+    
+        Console.CancelKeyPress += (s, e) => { Dispose(); };
         
         Provider = new DotNetInputProvider();
         ShowWarningAndDelay();
@@ -80,4 +73,9 @@ public static class Input
     public static bool IsShift => Provider.IsShift;
     public static bool IsCtrl  => Provider.IsCtrl;
     public static bool IsAlt   => Provider.IsAlt;
+    
+    public static void Dispose()
+    {
+        Provider?.Dispose();
+    }
 }

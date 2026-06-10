@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
+using _3dEngine.Inputs.Interfaces;
 using _3dEngine.Interfaces;
 
 namespace _3dEngine.Inputs.Implementations;
@@ -11,10 +12,17 @@ internal class User32InputProvider : IInputProvider
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
+    [DllImport("kernel32.dll")]
+    private static extern IntPtr GetConsoleWindow();
 
     [DllImport("user32.dll")]
-    private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+    private static extern bool IsChild(IntPtr hWndParent, IntPtr hWnd);
+    
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
 
+    private const uint GW_OWNER = 4;
+    
     public bool IsAvailable { get; private set; }
     public string? InitializationError { get; private set; }
     
@@ -25,16 +33,25 @@ internal class User32InputProvider : IInputProvider
         try
         {
             _ = GetAsyncKeyState(0);
+            _ = GetForegroundWindow();
+            _ = GetConsoleWindow();
+            _ = IsChild(IntPtr.Zero, IntPtr.Zero);
+            _ = GetWindow(IntPtr.Zero, GW_OWNER);
             IsAvailable = true;
         }
         catch (DllNotFoundException)
         {
-            InitializationError = "WARNING: 'user32.dll' not found (running on Windows Server Core/Nano or inside a Container?).";
+            InitializationError = "WARNING: Core Windows libraries (user32.dll or kernel32.dll) not found.";
+            IsAvailable = false;
+        }
+        catch (EntryPointNotFoundException)
+        {
+            InitializationError = "WARNING: Required Windows API entry points (GetConsoleWindow/GetAsyncKeyState) not found.";
             IsAvailable = false;
         }
         catch (Exception ex)
         {
-            InitializationError = $"WARNING: Windows User32 input failed to initialize: {ex.Message}";
+            InitializationError = $"WARNING: Windows Input failed to initialize: {ex.Message}";
             IsAvailable = false;
         }
     }
@@ -66,19 +83,23 @@ internal class User32InputProvider : IInputProvider
 
     private bool IsAppFocused()
     {
-        IntPtr handle = GetForegroundWindow();
-        if(handle == IntPtr.Zero) return false;
-        
-        const int nChars = 256;
-        StringBuilder buffer = new StringBuilder(nChars);
+        IntPtr foreground = GetForegroundWindow();
+        IntPtr console = GetActualConsoleWindow();
 
-        if (GetWindowText(handle, buffer, nChars) > 0)
-        {
-            string activeWindowTitle = buffer.ToString();
-            
-            return activeWindowTitle.Contains(Console.Title);
-        }
-        
-        return false;
+        if (foreground == IntPtr.Zero || console == IntPtr.Zero) return false;
+
+        return foreground == console;
     }
+    
+    private IntPtr GetActualConsoleWindow()
+    {
+        IntPtr console = GetConsoleWindow();
+            
+        IntPtr owner = GetWindow(console, GW_OWNER);
+            
+        return owner != IntPtr.Zero ? owner : console;
+    }
+
+    public void Dispose()
+    {}
 }

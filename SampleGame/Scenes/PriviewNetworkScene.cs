@@ -1,6 +1,7 @@
 ﻿using _3dEngine;
 using _3dEngine.AbstractClass;
 using _3dEngine.Implementation;
+using _3dEngine.Inputs;
 using _3dEngine.Interfaces;
 using _3dEngine.Network;
 using _3dEngine.Shape;
@@ -46,12 +47,12 @@ public class PriviewNetworkScene : Scene
         if (isServer) 
         {
             _netManager.StartServer(port);
-            Console.Title = $"SERVER (Port: {port}) | ID: {_myNetId}";
+            Frame.Title = $"SERVER (Port: {port}) | ID: {_myNetId}";
         }
         else 
         {
             _netManager.Connect(targetIp, port);
-            Console.Title = $"CLIENT (ID: {_myNetId}) -> {targetIp}:{port}";
+            Frame.Title = $"CLIENT (ID: {_myNetId}) -> {targetIp}:{port}";
         }
 
         
@@ -82,6 +83,7 @@ public class PriviewNetworkScene : Scene
             {
                 _isChatting = true;
                 _currentInput = "";
+                Input.IsPollingEnabled = false; 
                 while (Console.KeyAvailable) Console.ReadKey(true);
             }
         }
@@ -164,11 +166,14 @@ public class PriviewNetworkScene : Scene
                 }
                 _isChatting = false;
                 _currentInput = "";
+                
+                Input.IsPollingEnabled = true; 
             }
             else if (keyInfo.Key == ConsoleKey.Escape)
             {
                 _isChatting = false;
                 _currentInput = "";
+                Input.IsPollingEnabled = true; 
             }
             else if (keyInfo.Key == ConsoleKey.Backspace)
             {

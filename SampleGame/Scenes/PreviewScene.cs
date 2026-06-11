@@ -1,6 +1,7 @@
 ﻿using _3dEngine;
 using _3dEngine.AbstractClass;
 using _3dEngine.Implementation;
+using _3dEngine.Inputs;
 using _3dEngine.Interfaces;
 using _3dEngine.Shape;
 using _3dEngine.StaticClass;

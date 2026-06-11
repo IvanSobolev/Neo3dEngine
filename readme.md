@@ -78,6 +78,32 @@ Every frame is rendered using the following steps:
 
 ---
 
+## ⌨️ Cross-Platform Input Architecture
+
+The engine uses a decoupled **Strategy Pattern** to handle asynchronous, non-blocking input with native OS focus checks. This prevents "background input leakage" (ensuring the game only processes keypresses when your terminal window is actively focused).
+
+```
+[Input (Facade)] ---> [IInputProvider]
+                            |
+    +-----------------------+-----------------------+
+    |                       |                       |                       
+[User32 (Windows)]   [LibX11 (Linux)]        [DotNet (Fallback)]
+```
+
+*   **Windows (`User32InputProvider`)**:
+    *   Direct hardware polling via `GetAsyncKeyState` [1.1.3].
+    *   Active window verification: `GetForegroundWindow() == GetActualConsoleWindow()`. It natively resolves parent-owner relationships (`GetWindow` with `GW_OWNER`) [1.2.1, 2.1.2], supporting both legacy `conhost.exe` and modern tabbed **Windows Terminal** on Windows 11.
+*   **Linux (`LibX11InputProvider`)**:
+    *   Direct hardware polling using `XQueryKeymap` (fetching the full 256-bit keyboard state once per frame) [1, 2].
+    *   Dynamic, layout-independent mapping: Translates standard `.NET` `ConsoleKey` values to X11 KeySyms, resolving them to the user's active layout (QWERTY, AZERTY, Cyrillic, etc.) at startup via `XKeysymToKeycode` [2.1.3].
+    *   Focus detection via tree-climbing window ID checks, matching the active window against the console's environment `WINDOWID` or parent terminal names [1.2.1, 1.2.2].
+*   **Universal Fallback (`DotNetInputProvider`)**:
+    *   An asynchronous, thread-safe input queue wrapping `.NET`'s native `Console.ReadKey(true)` [2.1.8].
+    *   Implements a **timeout-based key-release emulator** to simulate smooth real-time KeyUp events and multi-key combinations inside standard command-line pipes [2].
+    *   Automatically activated in headless servers (SSH), pure Wayland sessions, or sandboxed containers [1].
+
+---
+
 ## 🌐 Custom TCP Network Protocol
 
 The networking module is written on raw sockets (`TcpListener`/`TcpClient`) with zero third-party dependencies.

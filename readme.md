@@ -149,6 +149,31 @@ When the console starts, choose your network role:
 
 ---
 
+## 🐧 Running Native High-Performance Input on Linux
+
+To enable hardware-level polling with zero input stuttering and smooth multi-key registration (e.g., strafing with `W+A`), the engine will automatically try to spin up native polling (`LibX11`). 
+
+Follow these steps to ensure native performance on Unix-based systems:
+
+### On Linux (Wayland vs. X11 Bypass)
+Modern Linux distributions (like Ubuntu 22.04+ or Fedora) run on **Wayland** by default. Wayland isolates window sessions for security, blocking global X11 polling. The engine automatically detects Wayland and falls back to safe console-buffering (`DotNetInputProvider`).
+
+To force the high-performance `LibX11` polling on a Wayland system:
+1. **The Terminal Server Trap**: GNOME Terminal operates via a background server-daemon. Standard commands to bypass Wayland are ignored by the background server, which stays in Wayland.
+2. **The Solution**: Use a standalone terminal emulator (like `xterm`) forced to run via XWayland [1.2.2]:
+   ```bash
+   sudo apt install xterm
+   WAYLAND_DISPLAY= xterm
+   ```
+3. Inside the newly opened `xterm` window, navigate to your project directory and run `dotnet run`. The engine will successfully bind to `LibX11InputProvider`.
+
+*Note on Containers/Root:* If you run the game inside a Docker container or via `sudo`, you must authorize X11 access on your host machine before launching:
+```bash
+xhost +local:root
+```
+
+---
+
 ## 📝 Creating a Custom Scene
 
 You can create your own scene by inheriting from the base `Scene` class. Here is a simple example rendering a single red sphere illuminated by a light source:

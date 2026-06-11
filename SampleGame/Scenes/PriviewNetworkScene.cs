@@ -83,6 +83,7 @@ public class PriviewNetworkScene : Scene
             {
                 _isChatting = true;
                 _currentInput = "";
+                Input.IsPollingEnabled = false; 
                 while (Console.KeyAvailable) Console.ReadKey(true);
             }
         }
@@ -165,11 +166,14 @@ public class PriviewNetworkScene : Scene
                 }
                 _isChatting = false;
                 _currentInput = "";
+                
+                Input.IsPollingEnabled = true; 
             }
             else if (keyInfo.Key == ConsoleKey.Escape)
             {
                 _isChatting = false;
                 _currentInput = "";
+                Input.IsPollingEnabled = true; 
             }
             else if (keyInfo.Key == ConsoleKey.Backspace)
             {

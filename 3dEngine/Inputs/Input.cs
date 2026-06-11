@@ -9,6 +9,8 @@ public static class Input
 {
     private static readonly IInputProvider Provider;
     
+    public static bool IsPollingEnabled { get; set; } = true; 
+    
     public static string WarningMessage { get; private set; } = string.Empty;
 
     static Input()
@@ -80,7 +82,10 @@ public static class Input
 
     public static void Update()
     {
-        Provider.Update();
+        if (IsPollingEnabled) 
+        {
+            Provider.Update();
+        }
     }
 
     public static bool IsGetKey(ConsoleKey key) => Provider.IsGetKey(key);

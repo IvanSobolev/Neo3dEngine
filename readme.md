@@ -21,7 +21,7 @@
 
 Neo 3D is a minimalist 3D engine written in C# that runs entirely inside the system console. The project is built without using third-party graphics libraries. All calculations—ranging from custom vector mathematics to raycasting/raytracing and network code—are executed on the CPU. In the future, we plan to port the most demanding computations from the CPU to the GPU using Vulkan.
 
-The project was created for demonstration and educational purposes for a [YouTube video](https://youtube.com/ссылка_на_видео).
+The project was created for demonstration and educational purposes for a [YouTube video](https://youtu.be/vhYE882B9dE).
 
 **The default branch contains the stable version of the project. There is also a long-lived `development` branch and short-lived feature branches.**
 

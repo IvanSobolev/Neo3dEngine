@@ -1,182 +1,77 @@
-# 💻 Neo 3D Console (C#)
+<p align="center"><img src="https://github.com/user-attachments/assets/93d11446-f67c-401e-8b35-693262f5d008" width="200"></p>
+<h1 align="center"><b>Neo 3D</b></h1>
+<h4 align="center">A minimalist console 3D engine with game development elements</h4>
+<p align="center">
+    <a href="https://github.com/IvanSobolev/Neo3dEngine/releases/tag/v0.1.1">
+        <img alt="Latest Release" src="https://img.shields.io/static/v1?label=tag&message=v0.1.1&color=64B5F6&style=flat">
+    </a>
+   <a href="https://github.com/IvanSobolev/Neo3dEngine/">
+        <img alt="Stars" src="https://img.shields.io/github/stars/IvanSobolev/Neo3dEngine?color=4B95DE&style=flat">
+    </a>
+   <a href="https://github.com/IvanSobolev/Neo3dEngine/">
+        <img alt="Forks" src="https://img.shields.io/github/forks/IvanSobolev/Neo3dEngine?color=4B95DE&style=flat">
+    </a>
+    <a href="https://www.gnu.org/licenses/gpl-3.0">
+        <img src="https://img.shields.io/badge/license-GPL%20v3-2B6DBE.svg?style=flat">
+    </a>
+</p>
+<h4 align="center"><a href="/CHANGELOG.md">Changelog</a> | <a href="https://github.com/IvanSobolev/Neo3dEngine/wiki">WIKI</a></h4>
 
-<img width="2070" height="1085" alt="Image" src="https://github.com/user-attachments/assets/06934758-90d4-4b63-9f40-8bb44ca2831e" />
+## About the Project
 
-A minimalist 3D engine written in C# that runs entirely inside the system console. This project was built from scratch without any external graphical libraries or modern graphics APIs (like OpenGL or DirectX). Everything—from custom vector mathematics to ray casting/tracing and the TCP network stack—is computed entirely on the CPU.
+Neo 3D is a minimalist 3D engine written in C# that runs entirely inside the system console. The project is built without using third-party graphics libraries. All calculations—ranging from custom vector mathematics to raycasting/raytracing and network code—are executed on the CPU. In the future, we plan to port the most demanding computations from the CPU to the GPU using Vulkan.
 
-This project was designed for educational and demonstration purposes for a [YouTube video](https://youtu.be/vhYE882B9dE).
+The project was created for demonstration and educational purposes for a [YouTube video](https://youtube.com/ссылка_на_видео).
 
----
+**The default branch contains the stable version of the project. There is also a long-lived `development` branch and short-lived feature branches.**
 
-## 🚀 Key Features
+## Scene Rendering Example (v0.1.1)
 
-1. **CPU Raycasting / Raytracing**:
-    * Renders polygonal meshes (`.obj` format) and geometric spheres.
-    * Intersection optimization using Bounding Sphere checks before performing detailed triangle intersection calculations.
-2. **Dynamic Lighting and Shadows**:
-    * Light intensity attenuation based on distance.
-    * Lambertian diffuse shading using surface normals.
-    * Real-time shadow rendering via Shadow Rays cast from intersection points back to light sources.
-3. **Multi-threaded Rendering**:
-    * Leverages `Parallel.For` to distribute pixel rendering calculations across all available CPU cores.
-4. **Optimized Console Output**:
-    * Map light intensity to a character gradient string (`" .:!/r(l1Z4H9W8$@"`) to simulate shading.
-    * Frame buffering with grouped-color output to minimize slow, native OS terminal print API calls.
-5. **Custom 3D Mathematics**:
-    * Custom implementations of `Vector3`, `Vector2`, `Ray`, and rotation matrices (Euler rotations around X, Y, and Z axes).
-    * Manual implementation of the Möller–Trumbore ray-triangle intersection algorithm.
-6. **Low-level Window Input**:
-    * Asynchronous, non-blocking keyboard polling using the Win32 API (`GetAsyncKeyState`), ensuring key presses are detected only when the console window is active.
-7. **Custom Network Multiplayer**:
-    * Client-server TCP network manager built from scratch.
-    * Custom binary packet serialization, routing via stable hash-based type IDs, and a decoupled event subscription model.
-    * Included multiplayer demo featuring real-time player position synchronization and a text-based chat lobby.
+<p align="center">
+    <img src="https://private-user-images.githubusercontent.com/147433062/603832576-06934758-90d4-4b63-9f40-8bb44ca2831e.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODEzNTY5MzIsIm5iZiI6MTc4MTM1NjYzMiwicGF0aCI6Ii8xNDc0MzMwNjIvNjAzODMyNTc2LTA2OTM0NzU4LTkwZDQtNGI2My05ZjQwLThiYjQ0Y2EyODMxZS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNjEzJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNjEzJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDYxM1QxMzE3MTJaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT02NWQxZTAwY2E2ZWZmZjM5MDA3ZWU4YzA1YTc2NjYxODA1ZDhmNjI4MjIwZDAzNTY2NDlmM2U5MzEzZWJiOTc1JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZwbmcifQ.ZhhssHM973G0ZRgzkUPht7oiN6Mdkqd6UyuOD6NFAtY">
+</p>
 
----
 
-## 🏗️ Architecture Overview
+## Features
 
-The engine is decoupled into clear logical layers:
+- Renders geometric spheres and `.obj` files using Raytracing.
+- Intersection optimization via bounding sphere checks before performing detailed polygon calculations.
+- Light attenuation calculation based on distance.
+- Lambertian diffuse lighting based on surface normals.
+- Shadow rendering by casting shadow rays from the intersection point to the light source.
+- Multithreaded rendering using `Parallel.For` to distribute pixel calculations across all CPU cores (with future plans to move these computations to the GPU using Vulkan).
+- Brightness mapping to a character gradient `" .:!/r(l1Z4H9W8$@"` for console output.
+- Frame buffering and batch rendering of identical colors to minimize slow console system API calls.
+- Custom `Vector3`, `Vector2`, `Ray` structures and rotation matrices.
+- Implementation of the Möller–Trumbore algorithm for ray-triangle intersection.
+- An input system for efficient keyboard polling using system APIs (adapting to the host OS via `IInputProvider`). Supported providers include: `User32.dll` on Windows, `X11` (with Wayland disabled) on Linux, and `DotNet Input` (an inefficient fallback with limitations on simultaneous key presses and difficulties tracking modifier keys like `Shift`, `Ctrl`, `Alt`; used when system access to `User32` or `X11` is unavailable).
+- A custom client-server module based on a TCP architecture for game data transmission. We plan to add a stable UDP interface in the future to increase performance in online scenes.
+- Custom binary packet serialization, automatic routing via stable type-hash IDs, and an event subscription system.
+- Examples of a working multiplayer lobby featuring player position synchronization and text chat.
+- An example scene demonstrating how to import and render a `.obj` model.
+- Automatic console size detection and scaling to fit the maximum terminal size (determined at startup).
 
-```
-├── AbstractClass             # Base classes for GameObjects, Scenes, Screens, and Lights
-├── Implementation            # Concrete cameras, rendering managers, and screen renderers
-├── Interfaces                # Contracts for loose coupling (ICamera, IScreen, etc.)
-├── Shape                     # Geometric primitives (Sphere, Triangle, Object3D)
-├── StaticClass               # Helper utilities (ObjLoader, GameTime tracking)
-├── Structure                 # Core structs (Vectors, Rays, RenderData payload)
-├── UI                        # Overlay system for rendering text on top of the frame buffer
-└── Network                   # Networking layer (TCP Manager, Packet abstractions, Serializer)
-```
+## Run Requirements
 
-### Core Architecture Components
+When running on Linux, Wayland must be disabled for the terminal window (since Wayland does not grant the terminal direct access to X11). There are many ways to disable it. If Wayland is active, a warning will be displayed when starting a scene.
 
-* **`Frame`**: The heart of the engine loop. It starts the cycle, updates the active scene's logic (`Update()`), triggers the screen renderer (`RenderFrame()`), prints FPS/diagnostics, and tracks delta-time.
-* **`Screen` (ConsoleScreenAsync)**: Manages resolution buffers for brightness and color. Its `RenderFrame` implementation parallelizes the conversion of brightness values into gradient characters and presents the entire frame buffer to the console as grouped color chunks.
-* **`Scene`**: A container for world elements. It manages the active camera, light lists, UI elements, and renderable objects (`IDisplays`). It computes individual pixel states via `GetPixelData` on demand.
-* **`DisplaysManager`**: Calculates intersections, searching for the nearest object intersected by rays projected from the viewport.
-
----
-
-## 📐 The Rendering Pipeline
-
-Every frame is rendered using the following steps:
-
-1. **Ray Generation**:
-   The camera translates the 2D UV screen coordinates into a 3D direction vector in world space, adjusting for the camera's position and orientation (Pitch, Yaw, Roll).
-2. **Intersection / Raycast**:
-   The ray is evaluated against all active objects in the scene via the `DisplayManager`:
-    * **Spheres**: Evaluated analytically using the quadratic formula for ray-sphere intersection.
-    * **Polygonal Objects (3D Models)**: First, a quick intersection check is run against the model's Bounding Sphere. If the ray hits the sphere, a detailed loop checks all individual triangles using the Möller–Trumbore algorithm.
-3. **Shading & Shadow Calculation**:
-   If an intersection is found, the engine calculates the light influence at that point:
-    * It determines the direction vector toward each light source.
-    * It calculates the dot product between the surface normal and the light direction (diffuse component).
-    * It casts a **Shadow Ray** from the intersection point toward the light. If another object intersects this shadow ray, the point is shaded as in shadow (brightness = 0).
-4. **Buffering & Output**:
-   The final light intensity is mapped to a character from the gradient array, buffered, and written out to the console terminal.
-
----
-
-## ⌨️ Cross-Platform Input Architecture
-
-The engine uses a decoupled **Strategy Pattern** to handle asynchronous, non-blocking input with native OS focus checks. This prevents "background input leakage" (ensuring the game only processes keypresses when your terminal window is actively focused).
-
-```
-[Input (Facade)] ---> [IInputProvider]
-                            |
-    +-----------------------+-----------------------+
-    |                       |                       |                       
-[User32 (Windows)]   [LibX11 (Linux)]        [DotNet (Fallback)]
-```
-
-*   **Windows (`User32InputProvider`)**:
-    *   Direct hardware polling via `GetAsyncKeyState`.
-    *   Active window verification: `GetForegroundWindow() == GetActualConsoleWindow()`. It natively resolves parent-owner relationships (`GetWindow` with `GW_OWNER`), supporting both legacy `conhost.exe` and modern tabbed **Windows Terminal** on Windows 11.
-*   **Linux (`LibX11InputProvider`)**:
-    *   Direct hardware polling using `XQueryKeymap` (fetching the full 256-bit keyboard state once per frame).
-    *   Dynamic, layout-independent mapping: Translates standard `.NET` `ConsoleKey` values to X11 KeySyms, resolving them to the user's active layout (QWERTY, AZERTY, Cyrillic, etc.) at startup via `XKeysymToKeycode`.
-    *   Focus detection via tree-climbing window ID checks, matching the active window against the console's environment `WINDOWID` or parent terminal names.
-*   **Universal Fallback (`DotNetInputProvider`)**:
-    *   An asynchronous, thread-safe input queue wrapping `.NET`'s native `Console.ReadKey(true)`.
-    *   Implements a **timeout-based key-release emulator** to simulate smooth real-time KeyUp events and multi-key combinations inside standard command-line pipes.
-    *   Automatically activated in headless servers (SSH), pure Wayland sessions, or sandboxed containers.
-
----
-
-## 🌐 Custom TCP Network Protocol
-
-The networking module is written on raw sockets (`TcpListener`/`TcpClient`) with zero third-party dependencies.
-
-* **Network Packet Layout**:
-  Packets are serialized into a sequential byte array containing a 12-byte header followed by the payload data:
-  ```
-  [ Type ID (4 bytes) ] [ Sender ID (4 bytes) ] [ Payload Length (4 bytes) ] [  Payload Data (N bytes)  ]
-  ```
-* **Registration & Serialization (`PacketManager`)**:
-  Packets inherit `INetworkPacket` and implement custom `Serialize`/`Deserialize` methods using `BinaryWriter`/`BinaryReader`. They are mapped to unique integer IDs using a stable hashing function on the class name string.
-* **Event Dispatching**:
-  Scripts subscribe to specific packet types asynchronously using the manager: `PacketManager.Subscribe<T>((packet, senderId) => { ... })`.
-
----
-
-## 🛠️ Getting Started
-
-To build and run this project, make sure you have the **.NET 8.0 SDK** (or newer) installed.
-
-### Step 1: File Setup
-Organize the codebase according to the directory structure. Make sure you have a valid `.obj` model file (such as Blender's classic low-poly Suzanne — `monkey.obj`) located in your output execution directory.
-
-### Step 2: Build and Run
-Navigate to your project directory and run:
+The easiest way to launch a terminal without Wayland is to use an independent terminal emulator (such as `xterm`) forced to run in X11 compatibility mode (via XWayland):
 ```bash
-dotnet run --configuration Release
-```
-*(Running with the `Release` configuration is highly recommended to ensure maximum parallel performance on your CPU).*
-
-### Step 3: Multiplayer Setup
-When the console starts, choose your network role:
-1. Press **`S`** to host as a Server. The terminal will display your local IP and port. Share this with a client.
-2. On another machine (or another terminal instance), press **`C`** to connect as a Client, input the Server's IP address, and connect.
-
-### Default Controls:
-* **`W, A, S, D`** — Move camera (Forward, Left, Backward, Right).
-* **`Space` / `Left Shift`** — Fly Up / Down.
-* **Arrow Keys** — Look around (Pitch and Yaw rotations).
-* **`Ctrl` + `W, A, S, D, Space, Shift`** — Move the active light source.
-* **`+` / `-`** — Increase / Decrease light intensity.
-* **`T`** — Open multiplayer chat (Type message -> `Enter` to send, `Esc` to cancel).
-
----
-
-## 🐧 Running Native High-Performance Input on Linux
-
-To enable hardware-level polling with zero input stuttering and smooth multi-key registration (e.g., strafing with `W+A`), the engine will automatically try to spin up native polling (`LibX11`). 
-
-Follow these steps to ensure native performance on Unix-based systems:
-
-### On Linux (Wayland vs. X11 Bypass)
-Modern Linux distributions (like Ubuntu 22.04+ or Fedora) run on **Wayland** by default. Wayland isolates window sessions for security, blocking global X11 polling. The engine automatically detects Wayland and falls back to safe console-buffering (`DotNetInputProvider`).
-
-To force the high-performance `LibX11` polling on a Wayland system:
-1. **The Terminal Server Trap**: GNOME Terminal operates via a background server-daemon. Standard commands to bypass Wayland are ignored by the background server, which stays in Wayland.
-2. **The Solution**: Use a standalone terminal emulator (like `xterm`) forced to run via XWayland [1.2.2]:
-   ```bash
-   sudo apt install xterm
-   WAYLAND_DISPLAY= xterm
-   ```
-3. Inside the newly opened `xterm` window, navigate to your project directory and run `dotnet run`. The engine will successfully bind to `LibX11InputProvider`.
-
-*Note on Containers/Root:* If you run the game inside a Docker container or via `sudo`, you must authorize X11 access on your host machine before launching:
-```bash
-xhost +local:root
+apt install xterm
+WAYLAND_DISPLAY= xterm
 ```
 
----
+In the resulting `xterm` window, navigate to your project directory and run the build command.
 
-## 📝 Creating a Custom Scene
 
-You can create your own scene by inheriting from the base `Scene` class. Here is a simple example rendering a single red sphere illuminated by a light source:
+## Build Instructions
+
+Neo 3D does not rely on third-party libraries. To run it, you only need the **.NET 8.0 SDK** or newer.
+1. Download or clone the repository from GitHub.
+2. Navigate to the `SampleGame` folder inside the project using your terminal and compile: `dotnet run --configuration Release`
+3. If configured correctly, you will be able to control the active scene. Use `W`, `A`, `S`, `D` to move; `Space`, `Shift` (or `Shift + any key` when using the `dotnet input` provider) to control height; and the arrow keys to rotate the camera. The `+` and `-` keys increase and decrease the scene's light intensity. In the scene with the 3D object, you can hold down the `Ctrl` key to move the light source.
+
+## Example of Creating a Custom Scene (C#) (Interacting with the Engine API)
 
 ```csharp
 using _3dEngine;
@@ -185,35 +80,64 @@ using _3dEngine.Implementation;
 using _3dEngine.Interfaces;
 using _3dEngine.Shape;
 
-public class MyCustomScene : Scene
+public class PreviewScene : Scene
 {
     private Camera _camera;
     private Sphere _sphere;
     private Light _light;
 
-    public MyCustomScene(IDisplaysManagerAsync manager) : base(manager) { }
+    public PreviewScene(IDisplaysManagerAsync manager) : base(manager) { }
 
     public override void Start()
     {
-        // 1. Initialize and set up the camera
-        _camera = new Camera(new Vector3(0, 0, -5), Vector3.Zero);
+        // Create a camera
+        _camera = new Camera(new Vector3(-10, 0, 0), Vector3.Zero);
         SetMainCamera(_camera);
 
-        // 2. Add a red sphere at the origin
+        // Create a red sphere at the origin
         _sphere = new Sphere(Vector3.Zero, Vector3.Zero, r: 1.5f);
         _sphere.Color = ConsoleColor.Red;
         AddDisplaysObject(_sphere);
 
-        // 3. Add a light source pointing at the sphere
-        _light = new Light(new Vector3(-2, 3, -4), lightPower: 15f);
+        // Add a light source
+        _light = new Light(new Vector3(-4, 3, -2), lightPower: 150f);
         AddLight(_light);
     }
 
     public override void Update()
     {
-        // Add frame update logic here (e.g., rotate objects over time using GameTime.GetDeltaTime())
+        // Rotate or move objects every frame using GameTime.GetDeltaTime()
     }
 }
 ```
 
-[old repository](https://github.com/IvanSobolev/3dEngine)
+To run your custom scene, specify it in your `Program.cs` entry point when instantiating the `Frame`:
+
+```csharp
+using _3dEngine;
+using _3dEngine.Implementation;
+
+class Program
+{
+    static void Main()
+    {
+        new Frame(new MyCustomScene(new DisplayManagerAsync()), new ConsoleScreenAsync()).MainLoop();
+    }
+}
+```
+
+
+## Contributing
+
+Neo 3D welcomes most pull requests, provided they comply with the [Contributing Guidelines](/.github/CONTRIBUTING.md).
+
+However, requests for new features and deep architectural changes are accepted less frequently. To learn more, please read the [Why Are These Features Missing?](https://github.com/OxygenCobalt/Auxio/wiki/Why-Are-These-Features-Missing%3F) section.
+
+
+## License
+
+[![GNU GPLv3 Image](https://www.gnu.org/graphics/gplv3-127x51.png)](http://www.gnu.org/licenses/gpl-3.0.en.html)
+
+Neo 3D is free software: you can use, study, distribute, build games with, and improve it as you see fit. Specifically, you can distribute and/or modify it under the terms of the GNU General Public License (GPL) as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+For more information, please see [here](https://github.com/IvanSobolev/Neo3dEngine?tab=GPL-3.0-1-ov-file).

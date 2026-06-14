@@ -1,4 +1,6 @@
-﻿<p align="center"><img src="https://github.com/user-attachments/assets/93d11446-f67c-401e-8b35-693262f5d008" width="200"></p>
+<h4 align="center"><a href="/readme.md">English</a> | <a href="/readmeRU.md">Русский</a></h4>
+ 
+<p align="center"><img src="https://github.com/user-attachments/assets/93d11446-f67c-401e-8b35-693262f5d008" width="200"></p>
 <h1 align="center"><b>Neo 3D</b></h1>
 <h4 align="center">Минималистичный 3D-движок для консоли с элементами для создания игр</h4>
 <p align="center">
